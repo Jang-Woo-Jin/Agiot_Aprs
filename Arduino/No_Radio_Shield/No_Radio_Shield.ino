@@ -38,11 +38,12 @@ void loop()
 {
   if ((int32_t) (millis() - next_aprs) >= 0) {
     // Time for another APRS frame
-    String testString = "##A" + String(count);
-    Serial.println(testString);
+    String a = "abc";
+    String b = "cde";
+    String c = a + b + String(count);
     count++;
     count %= 10;
-    aprs_send(testString);
+    aprs_send("##" + c);
     next_aprs += APRS_PERIOD * 1000L;
     while (afsk_flush()) {
       power_save();

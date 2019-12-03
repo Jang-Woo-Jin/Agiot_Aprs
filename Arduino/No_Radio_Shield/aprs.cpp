@@ -37,9 +37,7 @@ float meters_to_feet(float m)
 // Exported functions
 void aprs_send(String s)
 {
-  Serial.println(s);
-  char string[sizeof(s) + 1];
-  s.toCharArray(string, sizeof(string) + 1);
+  const char *string = s.c_str();
   Serial.println(string);
   //char temp[12];
   char temp[12] = "A";// Temperature (int/ext)
