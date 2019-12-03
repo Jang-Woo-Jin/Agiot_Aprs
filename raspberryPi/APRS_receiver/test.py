@@ -1,4 +1,5 @@
 import threading
+import subprocess
 from datetime import datetime
 
 class AsyncTask:
@@ -8,16 +9,17 @@ class AsyncTask:
     def Task(self):
         now = datetime.today().strftime("%Y-%m-%d")
         file_name = now+".log"
-        f = open("./Document/" + file_name, "r")
+        f = open("/home/pi/Document/" + file_name, "r")
         s = f.read()
         f.close()
-        f = open(file_name, "w")
+        f = open("/home/pi/Document/" + file_name, "w")
         f.close()
         lines = s.splitlines()
 
         for line in lines:
             try:
                 info = line.split("##")[1]
+                subprocess.call('mosquitto_pub -h 192.168.2.74 -t test -m "'+info+'"', shell=True)
                 print(info)
             except:
                 print("test?")
