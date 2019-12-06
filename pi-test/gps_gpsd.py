@@ -106,7 +106,7 @@ class Base_GPS:
         # APRS Info string goes something like this:
         # /235619h4304.95N/08912.63W>000/003/A=000859 comment
 
-        info = "/{:%H%M%S}h{}{}{}{}{}{}{:03d}/{:03d}/A{:06d} {}".format(
+        info = "/{},{},{},{},{},{},{},{}".format(
             self.gps_data.current_datetime,  # datetime object
             APRS_SYMBOL1,  # Symbol lookup table, see config
             self.gps_data.h,
