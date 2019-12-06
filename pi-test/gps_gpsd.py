@@ -1,5 +1,5 @@
 import audiogen
-import datetime
+from datetime import datetime
 import logging
 from os import system, remove
 import RPi.GPIO as GPIO
