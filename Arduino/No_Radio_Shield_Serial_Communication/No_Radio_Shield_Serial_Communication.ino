@@ -40,7 +40,7 @@ void loop()
     int r = 1;
     r = Serial.read() - '0';
     if ((int32_t) (millis() - next_aprs) >= 0) {
-      aprs_send("##sadfjas;fjasfj;akdfjl;kafdjl;" + String(r));
+      aprs_send("##" + String(r));
       next_aprs += APRS_PERIOD * 1000L;
       while (afsk_flush()) {
         power_save();
