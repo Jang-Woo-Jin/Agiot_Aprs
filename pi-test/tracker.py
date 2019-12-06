@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # here with additional logic.
 
 from scheduler_time import TimerScheduler as Scheduler
-from gps_gpsd import GPSD_Client as GPS
+from gps_gpsd import Base_GPS as GPS
 
 
 # Create the GPS class to read GPS data, assign a scheduler to decide when
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-
+        print("keyboard interrupt")
         # Turn off the lights
         GPIO.output(ALL_OUTPUT_PINS, GPIO.LOW)
         GPIO.cleanup()
@@ -73,4 +73,5 @@ if __name__ == "__main__":
         gps.shutdown()
         
         # Close the door
+        print("Exit!")
         sys.exit(0)

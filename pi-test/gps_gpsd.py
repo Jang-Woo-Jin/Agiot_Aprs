@@ -5,42 +5,24 @@ from os import system, remove
 import RPi.GPIO as GPIO
 import time
 
-import dateutil.parser
-from gps3 import gps3
-import math
-
 import afsk.afsk
 from afsk.ax25 import UI
 from config import *
 
 
 class GPS_Data:
-    def __init__(self, fix=False, latitude=None, latitude_direction=None,
-                 longitude=None, longitude_direction=None, altitude=None,
-                 course=None, speed=None, current_datetime=None):
+    def __init__(self, h=None, t=None, s=None, current_datetime=None):
 
-        self.fix = fix
-        self.latitude = latitude
-        self.latitude_direction = latitude_direction
-        self.longitude = longitude
-        self.longitude_direction = longitude_direction
-        self.altitude = altitude
-        self.course = course
-        self.speed = speed
+        self.h = h
+        self.t = t
+        self.s = s
         self.current_datetime = current_datetime
 
     def __str__(self):
-        if self.fix:
-            fix = "3D FIX"
-        else:
-            fix = "FIX"
-        return "{} {},{}  {} ft  {} deg  {} kts {}".format(
-            fix,
-            self.latitude,
-            self.longitude,
-            self.altitude,
-            self.course,
-            self.speed,
+        return "{},{},{}  {}".format(
+            self.h,
+            self.t,
+            self.s,
             self.current_datetime,
         )
 
@@ -51,124 +33,27 @@ class Base_GPS:
     # Set this to a scheduler class so we can track when messages are sent
     scheduler = None
 
-    # Set this to a GPIO pin to have a LED turn on when we acquire a GPS fix
-    # Keep in mind if you don't use of the defined pins in the ALL_OUTPUT_PINS
-    # you'll need to manually set it up as a GPIO output. This happens
-    # automatically in tracker.py using the pins definied in config.py.
     gps_led_pin = None
 
-    # Setup GPS class
-    # For example, our GPSD class creates the gpsd client connection here.
     def setup(self):
-        self.gps_socket = gps3.GPSDSocket()
-        self.gps_stream = gps3.DataStream()
-        self.gps_socket.connect()
-        self.gps_socket.watch()
+        pass
 
-    # Loop here. Receives data from whatever GPS we are using, parses it
-    # and determines when to send a packet based on the scheduler class
-    # created above.
-    #
-    # Loop should initialize start_datetime when we have a valid datetime
-    # from a GPS or other time source.
+
+
     def loop(self):
-        for tpv_data in self.gps_socket:
-            if tpv_data:
-                self.gps_stream.unpack(tpv_data)
-                tpv = self.gps_stream.TPV
+        while(True):
+            # Convert ISO 8601 date to a datetime object
+            # 2018-03-06T02:43:10.000Z'
+            self.gps_data.current_datetime = datetime.now()
 
-                # Data stream sent by gpsd are sourced from the JSON data as
-                # documented here: http://www.catb.org/gpsd/gpsd_json.html
-                # Mode is the only field that will ALWAYS be there. Check that
-                # we have data for the other fields before expecting them to be there.
-                #
-                #    mode     GPS fix? 0/1 = none, 2 = 2D, 3 = 3D [we want a 3D fix]
+            # Initialize the clock as this is the first valid timestamp we
+            # have from the GPS data
+            if self.start_datetime is None:
+                self.start_datetime = self.gps_data.current_datetime
 
-                # Require a 3D fix before continuing
-                # Turn off GPS LED if there is no fix
-                if tpv['mode'] != 3:
-                    logging.info("Waitng for 3D GPS fix")
-                    self.gps_data = GPS_Data(fix=False)
-                    self.gps_led_pin_off()
-                    continue
-
-                previous_fix_status = self.gps_data.fix
-                self.gps_data = GPS_Data(fix=True)
-
-                # Turn on the GPS LED if we have a new GPS fix
-                if not previous_fix_status:
-                    self.gps_led_pin_on()
-
-                logging.info(tpv)
-
-                # Data stream sent by gpsd are sourced from the JSON data as
-                # documented here: http://www.catb.org/gpsd/gpsd_json.html
-                # Mode is the only field that will ALWAYS be there. Check that
-                # we have data for the other fields before expecting them to be there.
-                #
-                # Fields that interest us:
-                #    mode     GPS fix? 0/1 = none, 2 = 2D, 3 = 3D [we want a 3D fix]
-                #    lon      Longitude
-                #    lat      Latitude
-                #    alt      Altitude
-                #    time     Time/date stamp in ISO8601 format, UTC
-                #    track    Course in degrees from true north
-                #    speed    Speed in meters per second
-                #    climb    Climb rate (or sink) in meters per second
-
-                # Parse Longitude and latitude, convert from decimal degrees to degrees and
-                # decimal minutes.
-                latitude_decimal_degrees = tpv['lat']
-                longitude_decimal_degrees = tpv['lon']
-
-                latitude_frac_degrees, latitude_whole_degrees = math.modf(abs(latitude_decimal_degrees))
-                longitude_frac_degrees, longitude_whole_degrees = math.modf(abs(longitude_decimal_degrees))
-
-                self.gps_data.latitude = "{:02d}{:05.2f}".format(
-                    int(latitude_whole_degrees),
-                    latitude_frac_degrees * 60.0,
-                )
-
-                self.gps_data.longitude = "{:03d}{:05.2f}".format(
-                    int(longitude_whole_degrees),
-                    longitude_frac_degrees * 60.0,
-                )
-
-                # Determine proper N/S/E/W directions
-                if latitude_decimal_degrees < 0.0:
-                    self.gps_data.latitude_direction = "S"
-                else:
-                    self.gps_data.latitude_direction = "N"
-
-                if longitude_decimal_degrees < 0.0:
-                    self.gps_data.longitude_direction = "W"
-                else:
-                    self.gps_data.longitude_direction = "E"
-
-                self.gps_data.altitude = int(round(tpv['alt'] / 0.3048))
-
-                try:
-                    self.gps_data.course = int(round(tpv['track']))
-                except TypeError:
-                    self.gps_data.course = 0
-
-                try:
-                    self.gps_data.speed = int(round(tpv['speed'] / 0.51444))
-                except TypeError:
-                    self.gps_data.speed = 0
-
-                # Convert ISO 8601 date to a datetime object
-                # 2018-03-06T02:43:10.000Z'
-                self.gps_data.current_datetime = dateutil.parser.parse(tpv['time'])
-
-                # Initialize the clock as this is the first valid timestamp we
-                # have from the GPS data
-                if self.start_datetime is None:
-                    self.start_datetime = self.gps_data.current_datetime
-
-                if self.scheduler_ready():
-                    logging.info("Sending packet")
-                    self.send_packet()
+            if self.scheduler_ready():
+                logging.info("Sending packet")
+                self.send_packet()
 
     # shutdown method for cleaning up files, closing sockets, etc.
     def shutdown(self):
@@ -181,18 +66,6 @@ class Base_GPS:
         self.gps_data = GPS_Data()
 
         self.setup()
-
-    # Turn off the GPS LED. Typically this means we lost the GPS fix.
-    def gps_led_pin_off(self):
-        logging.info("GPS fix lost")
-        if self.gps_led_pin:
-            GPIO.output(self.gps_led_pin, GPIO.LOW)
-
-    # Turn on the GPS LED, we have acquired a GPS fix.
-    def gps_led_pin_on(self):
-        logging.info("GPS fix acquired")
-        if self.gps_led_pin:
-            GPIO.output(self.gps_led_pin, GPIO.HIGH)
 
     # Check if our scheduler class determines if we are ready to send a packet.
     # Supply it with the current GPS data and the begining time.
@@ -211,10 +84,6 @@ class Base_GPS:
 
     # Send out a formatted APRS packet using the current GPS data
     def send_packet(self):
-        # Only send a packet if we have a GPS fix
-        if not self.gps_data.fix:
-            return
-
         # Format callsign and SSID
         # ABC123-4 with a SSID and ASB123 without one
         if CALLSIGN_SSID == "" or CALLSIGN_SSID == 0:
@@ -239,15 +108,11 @@ class Base_GPS:
 
         info = "/{:%H%M%S}h{}{}{}{}{}{}{:03d}/{:03d}/A{:06d} {}".format(
             self.gps_data.current_datetime,  # datetime object
-            self.gps_data.latitude,  # 04304.95
-            self.gps_data.latitude_direction,  # N/S
             APRS_SYMBOL1,  # Symbol lookup table, see config
-            self.gps_data.longitude,  # 08912.63
-            self.gps_data.longitude_direction,  # E/W
+            self.gps_data.h,
+            self.gps_data.t,
             APRS_SYMBOL2,  # Symbol lookup table, see config
-            self.gps_data.course,  # Magnetic heading
-            self.gps_data.speed,  # Speed in knots
-            self.gps_data.altitude,  # Altitude to meters
+            self.gps_data.s,
             APRS_COMMENT,  # Set comment text in config
         )
 
