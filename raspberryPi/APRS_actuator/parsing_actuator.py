@@ -14,7 +14,16 @@ class AsyncTask:
     def Task(self):
         now = datetime.today().strftime("%Y-%m-%d")
         file_name = now+".log"
-        f = open("/home/pi/Documents/" + file_name, "r")
+        
+        flag = True
+        while flag:
+            try:
+                f = open("/home/pi/Documents/" + file_name, "r")
+                flag = False
+            except:
+                print(file_name)
+                print("no file, retry after 5 second")
+                time.sleep(5)
         s = f.read()
         f.close()
         f = open("/home/pi/Documents/" + file_name, "w")
