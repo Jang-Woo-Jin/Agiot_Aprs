@@ -26,7 +26,7 @@ def func(second = 1.0):
         port_flag = True
         while(port_flag):
             try:
-                ser = serial.Serial(usb_port + port_num, 9600)
+                ser = serial.Serial(usb_port + str(port_num), 9600)
                 port_flag = False
             except:
                 print("port number error : " + str(port_num))
