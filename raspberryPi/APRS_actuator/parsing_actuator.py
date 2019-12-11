@@ -14,10 +14,10 @@ class AsyncTask:
     def Task(self):
         now = datetime.today().strftime("%Y-%m-%d")
         file_name = now+".log"
-        f = open("./Document/" + file_name, "r")
+        f = open("/home/pi/Documents/" + file_name, "r")
         s = f.read()
         f.close()
-        f = open("./Document/" + file_name, "w")
+        f = open("/home/pi/Documents/" + file_name, "w")
         f.close()
         lines = s.splitlines()
 
