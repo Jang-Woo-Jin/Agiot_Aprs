@@ -1,2 +1,2 @@
-rtl_fm -f 144.350M - | direwolf -l ~/Document -c sdr.conf -r 24000 -D 1 - > direwolf_log.txt &
-python parser.py
+rtl_fm -f 144.390M - | direwolf -l ~/Documents -c sdr.conf -r 24000 -D 1 &
+python parsing_actuator.py
