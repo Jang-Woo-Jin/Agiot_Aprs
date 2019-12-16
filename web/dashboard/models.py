@@ -11,3 +11,12 @@ class Sensor(models.Model):
 
     def __str__(self):
         return str(self.created_date)
+
+
+class Farm(models.Model):
+    user = models.CharField(max_length=25)
+    name = models.CharField(max_length=25)
+    location = models.CharField(max_length=25)
+
+    def __str__(self):
+        return str(self.name)

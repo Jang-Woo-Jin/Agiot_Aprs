@@ -2,72 +2,72 @@
 {% load static %}
 {% block content %}
 <div class="content-body">
-            <div class="row page-titles mx-0">
-                <div class="col p-md-0">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item active"><a href="/">Home</a></li>
-                    </ol>
-                </div>
-            </div>
-            <!-- row -->
+    <div class="row page-titles mx-0">
+        <div class="col p-md-0">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active"><a href="/">Home</a></li>
+            </ol>
+        </div>
+    </div>
+    <!-- row -->
 
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-4 col-xl-3">
-                        <h3>User Information </h3>
-                        <div class="card">
-                            <div class="card-body">
-                                    <strong class="text-dark mr-4">Name : </strong> <%=myinfo[0].user_name%><br>
-                                    <strong class="text-dark mr-4">ID :  </strong> <%=myinfo[0].user_id%><br>
-                                    <strong class="text-dark mr-4">Contact : </strong> <%=myinfo[0].user_contact%><br>
-                            </div>
-                        </div>
-                        <%if (myfarms.length!=0) {%>
-                        <div class="card">
-                            <div class="card-body">
-                            <center>
-                                <h5>Want to add another farm?</h5>
-                                <a href="/farm/create/form"><button type="button" class="btn mb-1 btn-primary btn-lg">Add Farm</button></a>
-                            </center>
-                            </div>
-                        </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4 col-xl-3">
+                <h3>User Information </h3>
+                <div class="card">
+                    <div class="card-body">
+                        <strong class="text-dark mr-4">Name : </strong> {{ user.username }}<br>
+                        <strong class="text-dark mr-4">E-mail : </strong> {{ user.email }}<br>
                     </div>
-                    <div class="col-lg-8 col-xl-9">
-                            <h3>My Farm List</h3>
-                            <%for(var i=0; i<myfarms.length; i++){%>
-                            <div class="col-lg-8 col-xl-9">
-                                <div class="card">
-                                    <div class="card-body">
-                                       <img src="{% static 'images/farm.png'%}" height="200" width="200" alt="" align="left">
-                                        <div class="card">
-                                        <div class="card-body">
-                                            <h4><%=i+1%>.</h4>
-                                            <strong>Farm ID : </strong>  <%=myfarms[i].farm_id%> <br>
-                                            <strong>Farm Name : </strong> <%=myfarms[i].farm_name%> <br>
-                                            <strong>Farm Location :</strong> <%=myfarms[i].farm_location%> <br>
-                                            <br>
-                                            <a href="/farm/<%=myfarms[i].farm_id%>" ><button type="button" class="btn mb-1 btn-primary btn-lg" href="/farm/<%=myfarms[i].farm_id%>">Go</button></a>
-                                        </div>
-                                    </div>
-                                    </div>
+                </div>
+                {% if farms.count %}
+                <div class="card">
+                    <div class="card-body">
+                        <center>
+                            <h5>Want to add another farm?</h5>
+                            <a href="/farm/create/form"><button type="button" class="btn mb-1 btn-primary btn-lg">Add Farm</button></a>
+                        </center>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-8 col-xl-9">
+                <h3>My Farm List</h3>
+                {% for farm in farms %}
+                <div class="col-lg-8 col-xl-9">
+                    <div class="card">
+                        <div class="card-body">
+                            <img src="{% static 'images/farm.png'%}" height="200" width="200" alt="" align="left">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>{{ farm.id }}.</h4>
+                                    <strong>Farm User : </strong>{{ farm.user }}<br>
+                                    <strong>Farm Name : </strong>{{ farm.name }}<br>
+                                    <strong>Farm Location :</strong>{{ farm.location }}<br>
+                                    <br>
+                                    <a href="/farm/<%=myfarms[i].farm_id%>" ><button type="button" class="btn mb-1 btn-primary btn-lg" href="/farm/<%=myfarms[i].farm_id%>">Go</button></a>
                                 </div>
                             </div>
-                            <%}%>
-                    <%}else{%>
-                        <div class="col-lg-8 col-xl-9">
-                            <h3>My Farm List</h3>
-                        <div class="card">
-                            <div class="card-body">
-                               <h5> No Farm Added</h5> <br>
-                                Want to add another farm? <br>
-                                <a href="/farm/create/form"><button type="button" class="btn mb-1 btn-primary btn-lg">Add Farm</button></a>
-                            </div>
                         </div>
                     </div>
-                    <%}%>
+                </div>
+                {% endfor %}
+                {% if farms.count <= 0 %}
+                <div class="col-lg-8 col-xl-9">
+                    <h3>My Farm List</h3>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5> No Farm Added</h5> <br>
+                            Want to add another farm? <br>
+                            <a href="/farm/create/form"><button type="button" class="btn mb-1 btn-primary btn-lg">Add Farm</button></a>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            <!-- #/ container -->
         </div>
-        </div>
+        <!-- #/ container -->
+    </div>
+</div>
 {% endblock content %}
