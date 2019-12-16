@@ -4,13 +4,13 @@ from django.contrib import auth
 
 def register(request):
     if request.method == "POST":
-        if request.POST["user_pw"] == request.POST["user_pw_confirm"]:
+        if request.POST["password"] == request.POST["password_confirm"]:
             user = User.objects.create_user(
                 username=request.POST["username"], password=request.POST["password"], email=request.POST["contact"],
             )
             auth.login(request, user)
-            return redirect('test')
-        return render(request, '/account/register.html')
+            return redirect('dash_farm')
+        return render(request, 'account/register.html')
     return render(request, 'account/register.html')
 
 def login(request):
@@ -20,8 +20,8 @@ def login(request):
         user = auth.authenticate(request, username=username, password=password)
         if user is not None:
             auth.login(request, user)
-            return redirect('test')
-        return render(request, '/account/login.html', {'error': 'username or password is incorrect'})
+            return redirect('dash_farm')
+        return render(request, 'account/login.html', {'error': 'Error : username or password is incorrect'})
     return render(request, 'account/login.html', {})
 
 def logout(request):
