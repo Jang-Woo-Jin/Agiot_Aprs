@@ -1,28 +1,23 @@
 {% extends 'dashboard/dash_basic.html'%}
 {% load static %}
 {% block content %}
-<div class="content-body">
+<div class="content-body ">
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-4 col-xl-3">
                 <h3>Farm Info</h3>
                 <div class="card">
                     <div class="card-body">
-                        <img src="/images/farm.png" height="100" width="100" alt="" align="left">
+                        <img src="{%static 'images/farm.png'%}" height="100" width="100" alt="" align="left">
                         <p>
-                            &nbsp<strong>Farm Name : </strong> <%=myfarm[0].farm_name%> <br>
-                            &nbsp<strong>Farm Location :</strong> <%=myfarm[0].farm_location%> <br>
-                            &nbsp<strong>Farm Technology : </strong>
-                            <%if(myfarm[0].farm_technology_type==1){%>
-                            APRS <br>
-                            <%}else{%>
-                            LoRA <br>
-                            <%}%>
+                            &nbsp<strong>Farm Name : </strong>{{ farm.name }}<br>
+                            &nbsp<strong>Farm Location :</strong>{{ farm.location }}<br>
+                            &nbsp<strong>Farm Technology : </strong>{{ farm.type  }}<br>
                         </p>
                     </div>
                 </div>
             </div>
-            <div class="content-body">
+            <div class="col-lg-8 col-xl-9">
                 <div class="container-fluid mt-3">
                     <div class="row">
                         <div class="col-lg-4 col-sm-6">
@@ -54,17 +49,17 @@
                                     <h3 class="card-title text-white">Irrigation System</h3>
                                     <div class="d-inline-block">
                                         <div id="farm_id" value="<%=farm_id%>">
-                                            <%if(sensor_info[0].actuator == false) {%>
+                                            {% if current.actuator %}
                                             <button class="btn mb-1 btn-primary btn-lg"
-                                                    onclick="toggle(this, {{ sensors.farm_id }})"
+                                                    onclick="toggle(this)"
                                                     value="OFF">OFF
                                             </button>
-                                            <%}else{%>
+                                            {% else %}
                                             <button class="btn mb-1 btn-primary btn-lg"
-                                                    onclick="toggle(this,  {{ sensors.farm_id }})"
+                                                    onclick="toggle(this)"
                                                     value="ON">ON
                                             </button>
-                                            <%}%>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <span class="float-right display-5 opacity-5"><i class="fa fa-shower"></i></span>
@@ -97,24 +92,24 @@
 
 {% block script %}
 <!-- Chartjs -->
-<script src="/plugins/chart.js/Chart.bundle.min.js"></script>
+<script src="{% static 'plugins/chart.js/Chart.bundle.min.js'%}"></script>
 <!-- Circle progress -->
-<script src="/plugins/circle-progress/circle-progress.min.js"></script>
+<script src="{% static 'plugins/circle-progress/circle-progress.min.js'%}"></script>
 <!-- Datamap -->
-<script src="/plugins/d3v3/index.js"></script>
-<script src="/plugins/topojson/topojson.min.js"></script>
-<script src="/plugins/datamaps/datamaps.world.min.js"></script>
+<script src="{% static 'plugins/d3v3/index.js'%}"></script>
+<script src="{% static 'plugins/topojson/topojson.min.js'%}"></script>
+<script src="{% static 'plugins/datamaps/datamaps.world.min.js'%}"></script>
 <!-- Morrisjs -->
-<script src="/plugins/raphael/raphael.min.js"></script>
-<script src="/plugins/morris/morris.min.js"></script>
+<script src="{% static 'plugins/raphael/raphael.min.js'%}"></script>
+<script src="{% static 'plugins/morris/morris.min.js'%}"></script>
 <!-- Pignose Calender -->
-<script src="/plugins/moment/moment.min.js"></script>
-<script src="/plugins/pg-calendar/js/pignose.calendar.min.js"></script>
+<script src="{% static 'plugins/moment/moment.min.js'%}"></script>
+<script src="{% static 'plugins/pg-calendar/js/pignose.calendar.min.js'%}"></script>
 <!-- ChartistJS -->
-<script src="/plugins/chartist/js/chartist.min.js"></script>
-<script src="/plugins/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js"></script>
+<script src="{% static 'plugins/chartist/js/chartist.min.js'%}"></script>
+<script src="{% static 'plugins/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js'%}"></script>
 
-<script src="/js/dashboard/dashboard-1.js"></script>
+<script src="{% static 'js/dashboard/dashboard-1.js'%}"></script>
 
 <script>
     function doStuff() {

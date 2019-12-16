@@ -4,10 +4,11 @@ from django.utils import timezone
 
 
 class Sensor(models.Model):
-    farm_id = models.IntegerField(max_length=3)
+    farm_id = models.IntegerField()
     soil_humidity = models.DecimalField(max_digits=5, decimal_places=2)
     temperature = models.DecimalField(max_digits=5, decimal_places=2)
     humidity = models.DecimalField(max_digits=5, decimal_places=2)
+    actuator = models.BooleanField()
     created_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

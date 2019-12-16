@@ -26,6 +26,8 @@ def farm_create(request):
 
 @login_required
 def farm_detail(request, id):
+    farm = Farm.objects.get(id=id)
     sensors = Sensor.objects.filter(farm_id=id).order_by('created_date')
     current_value = sensors[0]
-    return render(request, 'dashboard/farm_detail.html', {'sensors': sensors, 'current': current_value})
+    print(farm)
+    return render(request, 'dashboard/farm_detail.html', {'farm': farm, 'sensors': sensors, 'current': current_value})
