@@ -4,6 +4,7 @@ from django.utils import timezone
 
 
 class Sensor(models.Model):
+    farm_id = models.IntegerField(max_length=3)
     soil_humidity = models.DecimalField(max_digits=5, decimal_places=2)
     temperature = models.DecimalField(max_digits=5, decimal_places=2)
     humidity = models.DecimalField(max_digits=5, decimal_places=2)

@@ -1,0 +1,235 @@
+{% extends 'dashboard/dash_basic.html'%}
+{% load static %}
+{% block content %}
+<div class="content-body">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4 col-xl-3">
+                <h3>Farm Info</h3>
+                <div class="card">
+                    <div class="card-body">
+                        <img src="/images/farm.png" height="100" width="100" alt="" align="left">
+                        <p>
+                            &nbsp<strong>Farm Name : </strong> <%=myfarm[0].farm_name%> <br>
+                            &nbsp<strong>Farm Location :</strong> <%=myfarm[0].farm_location%> <br>
+                            &nbsp<strong>Farm Technology : </strong>
+                            <%if(myfarm[0].farm_technology_type==1){%>
+                            APRS <br>
+                            <%}else{%>
+                            LoRA <br>
+                            <%}%>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">
+                <div class="container-fluid mt-3">
+                    <div class="row">
+                        <div class="col-lg-4 col-sm-6">
+                            <div class="card gradient-1">
+                                <div class="card-body">
+                                    <h3 class="card-title text-white">Temperature</h3>
+                                    <div class="d-inline-block">
+                                        <h2 class="text-white">{{ current.temperature }}</h2>
+                                    </div>
+                                    <span class="float-right display-5 opacity-5"><i class="fa fa-temperture"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-6">
+                            <div class="card gradient-2">
+                                <div class="card-body">
+                                    <h3 class="card-title text-white">Humidity</h3>
+                                    <div class="d-inline-block">
+                                        <h2 class="text-white">{{ current.humidity }}</h2>
+                                    </div>
+                                    <span class="float-right display-5 opacity-5"><i
+                                            class="fa fa-hummmidity"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-sm-6">
+                            <div class="card gradient-4">
+                                <div class="card-body">
+                                    <h3 class="card-title text-white">Irrigation System</h3>
+                                    <div class="d-inline-block">
+                                        <div id="farm_id" value="<%=farm_id%>">
+                                            <%if(sensor_info[0].actuator == false) {%>
+                                            <button class="btn mb-1 btn-primary btn-lg"
+                                                    onclick="toggle(this, {{ sensors.farm_id }})"
+                                                    value="OFF">OFF
+                                            </button>
+                                            <%}else{%>
+                                            <button class="btn mb-1 btn-primary btn-lg"
+                                                    onclick="toggle(this,  {{ sensors.farm_id }})"
+                                                    value="ON">ON
+                                            </button>
+                                            <%}%>
+                                        </div>
+                                    </div>
+                                    <span class="float-right display-5 opacity-5"><i class="fa fa-shower"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body pb-0 d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-1">Recent Soil moisture Chart</h4>
+                                        </div>
+                                    </div>
+                                    <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- #/ container -->
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block script %}
+<!-- Chartjs -->
+<script src="/plugins/chart.js/Chart.bundle.min.js"></script>
+<!-- Circle progress -->
+<script src="/plugins/circle-progress/circle-progress.min.js"></script>
+<!-- Datamap -->
+<script src="/plugins/d3v3/index.js"></script>
+<script src="/plugins/topojson/topojson.min.js"></script>
+<script src="/plugins/datamaps/datamaps.world.min.js"></script>
+<!-- Morrisjs -->
+<script src="/plugins/raphael/raphael.min.js"></script>
+<script src="/plugins/morris/morris.min.js"></script>
+<!-- Pignose Calender -->
+<script src="/plugins/moment/moment.min.js"></script>
+<script src="/plugins/pg-calendar/js/pignose.calendar.min.js"></script>
+<!-- ChartistJS -->
+<script src="/plugins/chartist/js/chartist.min.js"></script>
+<script src="/plugins/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js"></script>
+
+<script src="/js/dashboard/dashboard-1.js"></script>
+
+<script>
+    function doStuff() {
+        console.log("Irrigation Switch!")
+    }
+
+    function toggle(button, farmID) {
+        console.log("TOGGLE")
+        console.log("FARMID : ", farmID)
+        if (button.value == "OFF") {
+            button.value = "ON"
+            button.innerHTML = "ON"
+            this.interval = setInterval(doStuff, 1000);
+            $.ajax({
+                url: "/farm/actuator",
+                method: "POST",
+                data: {
+                    result: "on",
+                    farm_id: farmID
+                },
+                success: function (data) {
+                    if (data['success'] == true) {
+                        if (!alert('Actuator Turned On')) {
+                            window.location.reload();
+                        }
+                    }
+                    if (data['success'] == false) {
+                        if (!alert("Actuator Failed to Turn on")) {
+                            window.location.reload();
+                        }
+                    }
+                },
+                error: function () {
+                    alert("Actuator Failed to Turn on");
+                }
+            })
+        } else if (button.value == "ON") {
+            button.value = "OFF"
+            button.innerHTML = "OFF"
+            $.ajax({
+                url: "/farm/actuator",
+                method: "POST",
+                data: {
+                    result: "off",
+                    farm_id: farmID
+                },
+                success: function (data) {
+                    if (data['success'] == true) {
+                        if (!alert('Actuator Turned Off')) {
+                            window.location.reload();
+                        }
+                    }
+                    if (data['success'] == false) {
+                        if (!alert("Actuator Failed to Turn Off")) {
+                            window.location.reload();
+                        }
+                    }
+                },
+                error: function () {
+                    alert("Actuator Failed to Turn Off");
+                }
+            });
+        }
+    }
+</script>
+<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+<script>
+    window.onload = function () {
+
+        var dataPoints = [];
+
+        var chart = new CanvasJS.Chart("chartContainer", {
+            animationEnabled: true,
+            theme: "light2",
+            title: {
+                text: "Soil Moisture"
+            },
+            axisY: {
+                title: "%",
+                titleFontSize: 15
+            },
+            data: [{
+                type: "column",
+                yValueFormatString: "## %",
+                dataPoints: dataPoints
+            }]
+        });
+
+        function addData(data) {
+            for (var i = 0; i < data.length; i++) {
+                dataPoints.push({
+                    x: new Date(data[i].s_datetime),
+                    y: data[i].soil_moisture
+                });
+            }
+            chart.render();
+        }
+
+        var farmID = document.getElementById("farmID").innerHTML;
+        $.ajax({
+            url: "/farm/get/soil/moisture",
+            method: "post",
+            data: {
+                farm_id: farmID,
+            },
+            success: function (data, soil_moisture) {
+                if (data['success'] == true) {
+                    console.log(data['soil_moisture']);
+                    addData(data['soil_moisture']);
+                }
+            },
+        })
+    }
+
+</script>
+{% endblock script %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block basic %}
-<div id="main-wrapper" class="h-100">
+<div id="main-wrapper" class="h-100" style="overflow: auto">
     <div class="nav-header">
         <div class="brand-logo">
             <a href="/">
@@ -66,3 +66,8 @@
     </div>
 </div>
 {% endblock basic %}
+
+{% block basic_script %}
+{% block script %}
+{% endblock script %}
+{% endblock basic_script %}
