@@ -17,6 +17,7 @@ class Farm(models.Model):
     user = models.CharField(max_length=25)
     name = models.CharField(max_length=25)
     location = models.CharField(max_length=25)
+    type = models.CharField(max_length=10)
 
     def __str__(self):
         return str(self.name)
