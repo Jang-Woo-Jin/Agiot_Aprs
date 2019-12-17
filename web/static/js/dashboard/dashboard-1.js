@@ -1,5 +1,20 @@
+Chart.defaults.global.defaultFontFamily = "'Nanum Gothic','Georgia', 'serif'"
+
+const truncateSize = 10;    // if label's size is bigger then this size, truncate label
+const cutoutPercentage = 65;    // ratio for doughnut chart's width
+const chartLabelFontSize = 10;
+const chartLabelFontColor = '#BBBBBB';
+const barChartColors = ['#5195f3'];
+
+window.onload = function () {
+    var farmID = $("#farm_id").attr('value');
+    console.log(farmID);
+
+    initSoilChart();
+}
+
 function doStuff() {
-    console.log("Irrigation Switch!")
+    console.log("Irrigation Switch!");
 }
 
 function toggle(button, farmID) {
@@ -61,48 +76,207 @@ function toggle(button, farmID) {
     }
 }
 
-window.onload = function () {
+function initSoilChart() {
+    $.ajax({
+        type: 'GET',
+        url: '/api/farm/get/soil-moisture',
 
-    var dataPoints = [];
+        success: function (data) {
+            makeBarChart($("#soil_chart"), data)
+        },
+        error: function () {
+            console.log("Error : can't get soil chart data");
+        }
+    });
+}
 
-    var chart = new CanvasJS.Chart("chartContainer", {
-        animationEnabled: true,
-        theme: "light2",
-        title: {
-            text: "Soil Moisture"
-        },
-        axisY: {
-            title: "%",
-            titleFontSize: 15
-        },
-        data: [{
-            type: "column",
-            yValueFormatString: "## %",
-            dataPoints: dataPoints
-        }]
+function makeBarChart(chartObj, chartData) {
+    let barChartData = makeBarChartData(chartData);
+    let barChartFormat = addBarChartOptions(barChartData);
+
+    let chartOptions = {
+        type: 'bar',
+        chartObj: chartObj,
+        data: barChartFormat
+    };
+    drawChart(chartOptions);
+}
+
+/* make specific data - depending on each elements, it choose and serialized called data */
+function makeBarChartData(chartData) {
+    let labels = [];
+    let value = [];
+
+    chartData.forEach(function (element) {
+        labels.push(element.time);
+        value.push(element.visitor);
     });
 
-    function addData(data) {
-        for (var i = 0; i < data.length; i++) {
-            dataPoints.push({
-                x: new Date(data[i].s_datetime),
-                y: data[i].soil_moisture
-            });
-        }
-        chart.render();
+    /* delete first value that is 23:59 and add 24:00 for more general view */
+    labels.splice(0, 1);
+    value.splice(0, 1);
+    labels.push("24:00");
+    value.push(0);
+    // Todo change to real data
+    let data = {
+        labels: ['01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00',
+                 '13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00','24:00',],//labels,
+        data: [87,86,85,84,85,86,87,91,99,130,137,151,180,203,202,205,192,158,100,70,60,58,55,48],//value,
+        colors: barChartColors
     }
 
-    var farmID = document.getElementById("farm_id").innerHTML;
-    console.log(farmID)
-    $.ajax({
-        type: "GET",
-        url: "/api/farm/get/soil-moisture",
-        data: {
-            farm_id: farmID,
+    return data;
+}
+
+function addBarChartOptions(data) {
+    let barChartData = {
+        labels: data.labels,    // set chart label data
+        datasets: [{
+            data: data.data,    // set chart value data
+            backgroundColor: data.colors[0],    // set chart color
+            borderColor: data.colors[0],        // set chart border color
+            borderWidth: 1,                     // set chart border width
+            hoverBorderWidth: 3                 // set chart border width when hover some chart data
+        }],
+        // options for legend
+        legend: {
+            display: false      // hide chart legend
         },
-        success: function (data) {
-            console.log(data['soil_moisture']);
-            addData(data['soil_moisture']);
-        },
-    })
+        // options for x, y axes
+        scales: {
+            xAxes: [{
+                ticks: {
+                    fontColor: chartLabelFontColor,
+                    fontSize: chartLabelFontSize
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Time',      // label string for x axis
+                    fontColor: chartLabelFontColor,
+                    fontSize: chartLabelFontSize
+                }
+            }],
+            yAxes: [{
+                display: true,
+                ticks: {
+                    beginAtZero: true,      // y axis is started with 0
+                    fontColor: chartLabelFontColor,
+                    fontSize: chartLabelFontSize,
+                    callback: function (value) {
+                        if (value % 1 === 0) {
+                            return value;
+                        }
+                    }    // remove real value for show only integer value
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Soil Moisture',    // label string for y axes
+                    fontColor: chartLabelFontColor,
+                    fontSize: chartLabelFontSize
+                }
+            }]
+        }
+    };
+
+    return barChartData;
+}
+
+/* draw and update chart */
+function drawChart(options) {
+    let type = options.type;
+    let chartObj = options.chartObj;
+    let data = options.data;
+
+    // if chart's all data is 0, it shows no data text
+    if (isAllZero(data.datasets) && type != 'bar') {
+        let chart = chartObj.data('chart');
+        // if chart is already exist, it updates the chart - it has no data that it removes the chart
+        if (chart != undefined) {
+            updateChart(chart, data);
+        }
+    } else {
+        let chart = chartObj.data('chart');
+        // if chart is already exist, it updates the chart
+        if (chart != undefined) {
+            updateChart(chart, data);
+        } else {
+            let windowWidth = $(window).width();
+
+            let chart = new Chart(chartObj, {
+                type: type,
+                data: {
+                    datasets: data.datasets,
+                    labels: truncateLabel(data.labels, truncateSize)
+                },
+                options: {
+                    legend: data.legend,
+                    cutoutPercentage: cutoutPercentage,     // it used for doughnut chart
+                    maintainAspectRatio: false,     // if it is true, maintain the original canvas width and height ratio when resizing
+                    scales: data.scales !== undefined ? data.scales : null,
+                    tooltips: {
+                        callbacks: {
+                            label: function (t, d) {
+                                let xLabel = data.labels[t.index],
+                                    yLabel = d.datasets[t.datasetIndex].data[t.index];
+                                return xLabel + ': ' + yLabel;
+                            }
+                        }
+                    }
+                }
+            });
+            chartObj.data('chart', chart);
+        }
+    }
+}
+
+function updateChart(chart, datas) {
+    let i = 0;
+    chart.data.datasets.forEach(function (dataset) {
+        dataset.data = datas.datasets[i++].data;
+    });
+    chart.data.labels = truncateLabel(datas.labels, 10);
+    chart.options.tooltips.callbacks = {
+        label: function (t, d) {
+            let xLabel = datas.labels[t.index],
+                yLabel = d.datasets[t.datasetIndex].data[t.index];
+            return xLabel + ': ' + yLabel;
+        }
+    }
+    chart.update();
+}
+
+/* some util functions */
+function calPreMonth(today, month) {
+    let split = today.split('-');
+    return split[0] + '-' + pad((split[1] - month), 2) + '-' + split[2];
+}
+
+function pad(n, width) {
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+}
+
+function isAllZero(datasets) {
+    let isAllZero = true;
+
+    datasets.forEach(function (dataset) {
+        dataset.data.some(function (elements) {
+            if (elements != 0) isAllZero = false;
+            return elements != 0;
+        });
+        if (!isAllZero) return;
+    });
+
+    return isAllZero;
+}
+
+function truncateLabel(label, size) {
+    let trunc_label = [];
+    label.forEach(function (data) {
+        if (data.length > size) {
+            data = data.substring(0, size - 3) + '...'
+        }
+        trunc_label.push(data);
+    });
+    return trunc_label;
 }

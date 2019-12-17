@@ -76,7 +76,9 @@
                                             <h4 class="mb-1">Recent Soil moisture Chart</h4>
                                         </div>
                                     </div>
-                                    <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+                                    <div id="chartContainer" style="height: 300px; width: 100%;">
+                                        <canvas id="soil_chart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -108,9 +110,6 @@
 <!-- ChartistJS -->
 <script src="{% static 'plugins/chartist/js/chartist.min.js'%}"></script>
 <script src="{% static 'plugins/chartist-plugin-tooltips/js/chartist-plugin-tooltip.min.js'%}"></script>
-
-<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
-<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
 <script src="{% static 'js/dashboard/dashboard-1.js'%}"></script>
 {% endblock script %}

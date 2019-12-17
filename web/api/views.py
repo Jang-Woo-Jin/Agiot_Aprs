@@ -12,8 +12,7 @@ class SensorsViewSet(viewsets.ModelViewSet):
     def get_soil(self, request):
         if request.method == "POST":
             print(request.POST['farm_id'])
-        #if request.method == "POST":
         sensors = Sensor.objects.filter(farm_id=1).order_by('created_date')
         serializers = SensorSoilSerializer(sensors, many=True)
-        return Response(serializers.data)
-        #return Response(NotAcceptable)
+        data = serializers.data
+        return Response(data)
