@@ -24,63 +24,27 @@ function toggle(button, farmID) {
         button.value = "ON"
         button.innerHTML = "ON"
         this.interval = setInterval(doStuff, 1000);
-        $.ajax({
-            url: "/farm/actuator",
-            method: "POST",
-            data: {
-                result: "on",
-                farm_id: farmID
-            },
-            success: function (data) {
-                if (data['success'] == true) {
-                    if (!alert('Actuator Turned On')) {
-                        window.location.reload();
-                    }
-                }
-                if (data['success'] == false) {
-                    if (!alert("Actuator Failed to Turn on")) {
-                        window.location.reload();
-                    }
-                }
-            },
-            error: function () {
-                alert("Actuator Failed to Turn on");
-            }
-        })
     } else if (button.value == "ON") {
         button.value = "OFF"
-        button.innerHTML = "OFF"
-        $.ajax({
-            url: "/farm/actuator",
-            method: "POST",
-            data: {
-                result: "off",
-                farm_id: farmID
-            },
-            success: function (data) {
-                if (data['success'] == true) {
-                    if (!alert('Actuator Turned Off')) {
-                        window.location.reload();
-                    }
-                }
-                if (data['success'] == false) {
-                    if (!alert("Actuator Failed to Turn Off")) {
-                        window.location.reload();
-                    }
-                }
-            },
-            error: function () {
-                alert("Actuator Failed to Turn Off");
-            }
-        });
+        button.innerHTML = "OFF" 
     }
+    $.ajax({
+        method: "GET",
+        url: '/api/farm/send/actuator',
+        data: {
+            value: button.value == "ON" ? 1 : 0
+        }
+    });
 }
 
 function initSoilChart() {
+    farm_id = $("#farm_id").val()
     $.ajax({
         type: 'GET',
         url: '/api/farm/get/soil-moisture',
-
+        data:{
+            farm_id: farm_id,
+        },
         success: function (data) {
             console.log(data)
             makeBarChart($("#soil_chart"), data)

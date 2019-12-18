@@ -5,14 +5,15 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotAcceptable
 import datetime
 from datetime import date
+import subprocess
 
 class SensorsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return
 
     def get_soil(self, request):
-        if request.method == "POST":
-            print(request.POST['farm_id'])
+        if request.method == "GET":
+            print(request.GET['farm_id'])
         today = date.today()
         sensors = Sensor.objects.filter(farm_id=1).order_by('created_date')
         serializers = SensorSoilSerializer(sensors, many=True)
@@ -36,3 +37,8 @@ class SensorsViewSet(viewsets.ModelViewSet):
             'data': today_hours_max_data
         }
         return Response(chart_data)
+    
+    def send_actuator(self, request):
+        print(request.GET["value"])
+        subprocess.call('mosquitto_pub -d -t web -m "!' + request.GET["value"] + '"', shell=True)
+    
