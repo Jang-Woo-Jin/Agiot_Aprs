@@ -82,6 +82,7 @@ function initSoilChart() {
         url: '/api/farm/get/soil-moisture',
 
         success: function (data) {
+            console.log(data)
             makeBarChart($("#soil_chart"), data)
         },
         error: function () {
@@ -107,21 +108,9 @@ function makeBarChartData(chartData) {
     let labels = [];
     let value = [];
 
-    chartData.forEach(function (element) {
-        labels.push(element.time);
-        value.push(element.visitor);
-    });
-
-    /* delete first value that is 23:59 and add 24:00 for more general view */
-    labels.splice(0, 1);
-    value.splice(0, 1);
-    labels.push("24:00");
-    value.push(0);
-    // Todo change to real data
     let data = {
-        labels: ['01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00',
-                 '13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00','24:00',],//labels,
-        data: [87,86,85,84,85,86,87,91,99,130,137,151,180,203,202,205,192,158,100,70,60,58,55,48],//value,
+        labels: chartData.index,//labels,
+        data: chartData.data,//value,
         colors: barChartColors
     }
 
